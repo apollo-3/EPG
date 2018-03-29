@@ -7,7 +7,7 @@ This little guide will run you through usage process
 
 ### Prerequisites
 
-You need ruby installed on your system
+You need ruby installed on your system and your public key should be trusted on monitored hosts
 
 ### Running
 

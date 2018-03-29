@@ -2,16 +2,15 @@ require_relative 'ssh'
 
 module Monitoring
   class Worker
-    attr_accessor :host
-    attr_reader   :result
+    attr_reader :host, :result
     def initialize(host, user, key, timeout, logger)
-      @host    = host
-      @user    = user
-      @key     = key
-      @timeout = timeout
-      @cmd     = ""
-      @result  = nil
-      @logger  = logger
+      @host       = host
+      @user       = user
+      @key        = key
+      @timeout    = timeout
+      @cmd        = ""
+      @result     = nil
+      @logger     = logger
     end
 
     # Execute worker
@@ -39,7 +38,7 @@ module Monitoring
                             value: groups[1],
                             type:  "g")
         processes << metric
-        @logger.debug(metric.format_before_send)
+        @logger.debug("Collected metric \"#{metric.format_before_send}\"")
       end
       processes
     end

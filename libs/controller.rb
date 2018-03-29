@@ -5,21 +5,15 @@ require_relative 'worker'
 
 module Monitoring
   class Controller
-    def initialize(hosts:,
+    def initialize(host_groups:,
                    user:,
                    key:,
                    timeout:,
-                   statsd_per_host: false,
-                   statsd_host:,
-                   statsd_port:,
-                   log_level:       "INFO")
-      @hosts           = hosts
+                   log_level: "INFO")
+      @host_groups     = host_groups
       @user            = user
       @key             = key
       @timeout         = timeout
-      @statsd_per_host = statsd_per_host
-      @statsd_host     = statsd_host
-      @statsd_port     = statsd_port
       @threads         = []
       @logger          = Logger.new(STDOUT)
       @logger.level    = Logger.const_get(log_level)
@@ -31,37 +25,27 @@ module Monitoring
     def run()
       @threads = []
       @logger.info("Running threads on remote hosts...")
-      @hosts.each do |host|
-        @threads << Thread.new {
-          worker = PSWorker.new(host, @user, @key, @timeout, @logger)
-          worker.run
-          Thread.current[:result] = worker.result_to_metrics
-        }
+      @host_groups.each do |host_group|
+        host_group[:hosts].each do |host|
+          @threads << Thread.new {
+            worker = PSWorker.new(host,
+                                  @user,
+                                  @key,
+                                  @timeout,
+                                  @logger)
+            worker.run
+            statsd_client = StatsD.new(host_group[:statsd][:host],
+                                       host_group[:statsd][:port],
+                                       @logger)
+            worker.result_to_metrics.each do |metric|
+              statsd_client.send(metric)
+            end
+            @logger.debug("Host \"#{host}\" completed work")
+          }
+        end
       end
       @threads.each { |thr| thr.join }
-    end
-
-    # Send metrics to a backend-server
-    def send_metrics
-      @logger.info("Sending metrics...")
-      read_results.each do |metric|
-        statsd_host = @statsd_per_host == true ? metric.host : @statsd_host
-        statsd_client = StatsD.new(statsd_host, @statsd_port, @logger)
-        statsd_client.send(metric)
-      end
       @logger.info("Work completed")
-    end
-
-    private
-    # Make metric array from thread execution results
-    def read_results
-      results = []
-      @threads.each do |thr|
-         thr[:result].each do |metric|
-           results << metric
-         end
-      end
-      results
     end
   end
 end

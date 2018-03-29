@@ -5,15 +5,20 @@ module Monitoring
                    name:,
                    value:,
                    type:)
-      @host  = host
-      @name  = name
-      @value = value
-      @type  = type
+      @host        = host
+      @name        = name
+      @value       = value
+      @type        = type
     end
 
     # Format metric to statsd foramt string
     def format_before_send
       "#{@host}.#{@name}:#{@value}|#{@type}"
+    end
+
+    # Get full metric name
+    def full_name
+      "#{@host}.#{@name}"
     end
   end
 end
