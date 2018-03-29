@@ -8,12 +8,14 @@ module Monitoring
     def initialize(hosts:,
                    user:,
                    key:,
+                   timeout:,
                    statsd_host:,
                    statsd_port:,
                    log_level: "INFO")
       @hosts        = hosts
       @user         = user
       @key          = key
+      @timeout      = timeout
       @statsd_host  = statsd_host
       @statsd_port  = statsd_port
       @threads      = []
@@ -29,7 +31,7 @@ module Monitoring
       @logger.info("Running threads on remote hosts...")
       @hosts.each do |host|
         @threads << Thread.new {
-          worker = PSWorker.new(host, @user, @key, @logger)
+          worker = PSWorker.new(host, @user, @key, @timeout, @logger)
           worker.run
           Thread.current[:result] = worker.result_to_metrics
         }
@@ -44,6 +46,7 @@ module Monitoring
       read_results.each do |metric|
         statsd_client.send(metric)
       end
+      @logger.info("Work completed")
     end
 
     private

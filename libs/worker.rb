@@ -4,18 +4,19 @@ module Monitoring
   class Worker
     attr_accessor :host
     attr_reader   :result
-    def initialize(host, user, key, logger)
-      @host   = host
-      @user   = user
-      @key    = key
-      @cmd    = ""
-      @result = nil
-      @logger = logger
+    def initialize(host, user, key, timeout, logger)
+      @host    = host
+      @user    = user
+      @key     = key
+      @timeout = timeout
+      @cmd     = ""
+      @result  = nil
+      @logger  = logger
     end
 
     # Execute worker
     def run
-      @result = SSH.new(@host, @user, @key, @cmd, @logger).run
+      @result = SSH.new(@host, @user, @key, @cmd, @timeout, @logger).run
     end
 
     # Transform result to metrics array
@@ -23,8 +24,8 @@ module Monitoring
   end
 
   class PSWorker < Worker
-    def initialize(host, user, key, logger)
-      super(host, user, key, logger)
+    def initialize(host, user, key, timeout, logger)
+      super(host, user, key, timeout, logger)
       @cmd = "ps -axo pid:1,rss:1 --sort=%mem --no-headers"
     end
 
@@ -35,7 +36,7 @@ module Monitoring
         groups = line.match(/([^ ]*) (.*)/i).captures
         metric = Metric.new("#{@host}.#{groups[0]}",
                             groups[1],
-                            "c")
+                            "g")
         processes << metric
         @logger.debug(metric.format_before_send)
       end
