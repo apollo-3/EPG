@@ -1,22 +1,35 @@
+require 'socket'
+
 module Monitoring
-  class StatsD
-    def initialize(host, port)
+  class Adapter
+    def initialize(logger)
+      @logger = logger
+    end
+
+    def send(metric) end
+  end
+
+  class StatsD < Adapter
+    def initialize(host, port, logger)
+      super(logger)
       @host   = host
       @port   = port
       @socket = nil
     end
 
-    def send(metric, value, type)
+    # Send metric to StatsD
+    def send(metric)
       begin
         open_socket()
-        @socket.send("#{metric}:#{value}|#{type}", 0)
+        @socket.send(metric.format_before_send, 0)
         @socket.close
       rescue
-        puts "ERROR: failed to send data via socket"
+        @logger.error("Failed to send data to StatsD")
       end
     end
 
     private
+    # Open socket connection to StatsD
     def open_socket
       @socket = Socket.new(:INET, :DGRAM)
       @socket.connect_nonblock Socket.sockaddr_in(@port, @host)
