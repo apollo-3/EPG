@@ -21,6 +21,7 @@ module Monitoring
     def send(metric)
       begin
         open_socket()
+        @logger.debug("Send metrics to #{@host}:#{@port}...")
         @socket.send(metric.format_before_send, 0)
         @socket.close
       rescue

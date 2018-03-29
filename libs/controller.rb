@@ -9,18 +9,20 @@ module Monitoring
                    user:,
                    key:,
                    timeout:,
+                   statsd_per_host: false,
                    statsd_host:,
                    statsd_port:,
-                   log_level: "INFO")
-      @hosts        = hosts
-      @user         = user
-      @key          = key
-      @timeout      = timeout
-      @statsd_host  = statsd_host
-      @statsd_port  = statsd_port
-      @threads      = []
-      @logger       = Logger.new(STDOUT)
-      @logger.level = Logger.const_get(log_level)
+                   log_level:       "INFO")
+      @hosts           = hosts
+      @user            = user
+      @key             = key
+      @timeout         = timeout
+      @statsd_per_host = statsd_per_host
+      @statsd_host     = statsd_host
+      @statsd_port     = statsd_port
+      @threads         = []
+      @logger          = Logger.new(STDOUT)
+      @logger.level    = Logger.const_get(log_level)
 
       @logger.info("Controller created")
     end
@@ -42,8 +44,9 @@ module Monitoring
     # Send metrics to a backend-server
     def send_metrics
       @logger.info("Sending metrics...")
-      statsd_client = StatsD.new(@statsd_host, @statsd_port, @logger)
       read_results.each do |metric|
+        statsd_host = @statsd_per_host == true ? metric.host : @statsd_host
+        statsd_client = StatsD.new(statsd_host, @statsd_port, @logger)
         statsd_client.send(metric)
       end
       @logger.info("Work completed")

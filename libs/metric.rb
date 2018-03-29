@@ -1,7 +1,11 @@
 module Monitoring
   class Metric
-    attr_reader :name, :value, :type
-    def initialize(name, value, type)
+    attr_reader :host, :name, :value, :type
+    def initialize(host:,
+                   name:,
+                   value:,
+                   type:)
+      @host  = host
       @name  = name
       @value = value
       @type  = type
@@ -9,7 +13,7 @@ module Monitoring
 
     # Format metric to statsd foramt string
     def format_before_send
-      "#{@name}:#{@value}|#{@type}"
-    end    
+      "#{@host}.#{@name}:#{@value}|#{@type}"
+    end
   end
 end
