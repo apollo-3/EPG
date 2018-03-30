@@ -3,19 +3,21 @@ require_relative 'ssh'
 module Monitoring
   class Worker
     attr_reader :host, :result
-    def initialize(host, user, key, timeout, logger)
-      @host       = host
-      @user       = user
-      @key        = key
-      @timeout    = timeout
-      @cmd        = ""
-      @result     = nil
-      @logger     = logger
+    def initialize(host, ssh_opts, logger)
+      @host     = host
+      @ssh_opts = ssh_opts
+      @cmd      = ""
+      @result   = nil
+      @logger   = logger
     end
 
     # Execute worker
     def run
-      @result = SSH.new(@host, @user, @key, @cmd, @timeout, @logger).run
+      @result = SSH.new(@host,
+                        @ssh_opts,
+                        @cmd,
+                        @logger).run
+      self
     end
 
     # Transform result to metrics array
@@ -23,8 +25,8 @@ module Monitoring
   end
 
   class PSWorker < Worker
-    def initialize(host, user, key, timeout, logger)
-      super(host, user, key, timeout, logger)
+    def initialize(host, ssh_opts, logger)
+      super(host, ssh_opts, logger)
       @cmd = "ps -axo pid:1,rss:1 --sort=%mem --no-headers"
     end
 

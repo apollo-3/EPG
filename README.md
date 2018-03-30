@@ -11,7 +11,7 @@ You need ruby installed on your system and your public key should be trusted on 
 
 ### Running
 
-Please do necessary adjustments in **config.rb** and the run
+Please do necessary adjustments in **config.rb** and then run
 
 ```
 ruby run.rb

@@ -1,11 +1,14 @@
 module Monitoring
   class SSH
-    def initialize(host, user, key, cmd, timeout, logger)
-      @user     = user
+    def initialize(host,
+                   ssh_opts,
+                   cmd,
+                   logger)
       @host     = host
-      @key      = key
+      @user     = ssh_opts[:user]
+      @key      = ssh_opts[:key]
+      @timeout  = ssh_opts[:timeout]
       @cmd      = cmd
-      @timeout  = timeout
       @logger   = logger
       @cmd_line = construct_cmd
     end

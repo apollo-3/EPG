@@ -1,6 +1,6 @@
 CONFIG = {
   # Information for SSH connection to remote hosts
-  :ssh => {
+  :ssh_opts => {
     :user    => "root",
     :key     => "~/.ssh/id_rsa",
     :timeout => "5"

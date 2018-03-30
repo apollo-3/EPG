@@ -10,10 +10,10 @@ module Monitoring
   end
 
   class StatsD < Adapter
-    def initialize(host, port, logger)
+    def initialize(statsd, logger)
       super(logger)
-      @host   = host
-      @port   = port
+      @host   = statsd[:host]
+      @port   = statsd[:port]
       @socket = nil
     end
 
