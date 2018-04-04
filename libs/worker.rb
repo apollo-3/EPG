@@ -35,10 +35,13 @@ module Monitoring
       processes = []
       @result.each_line do |line|
         groups = line.match(/([^ ]*) (.*)/i).captures
-        metric = Metric.new(host:  @host,
-                            name:  groups[0],
-                            value: groups[1],
-                            type:  "g")
+        metric = StatsDMetric.new(metric_details: {
+          :host   => @host,
+          :name   => groups[0],
+          :values => {
+            :main   => groups[1]
+          },
+          :type   =>  "g"})
         processes << metric
         @logger.debug("Collected metric \"#{metric.format_before_send}\"")
       end
