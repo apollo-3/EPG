@@ -10,7 +10,7 @@ CONFIG = {
                     {:hosts  => ["centos_host",
                                  "centos_host",
                                  "centos_host"],
-                     :statsd => {:host => "192.168.56.10",
+                     :output => {:host => "192.168.56.10",
                                  :port => "9125"}}
   ],
   :log_level => "DEBUG"

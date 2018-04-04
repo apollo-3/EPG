@@ -1,5 +1,5 @@
 require 'logger'
-require_relative 'statsd'
+require_relative 'adapter'
 require_relative 'metric'
 require_relative 'worker'
 
@@ -18,13 +18,12 @@ module Monitoring
     end
 
     # Run Monitoring
-    def run(worker_names)
+    def run(worker_names:, adapter_names:)
       @threads = []
       @logger.info("Running threads on remote hosts...")
       @host_groups.each do |host_group|
         host_group[:hosts].each do |host|
           @threads << Thread.new {
-            statsd_client = StatsD.new(host_group[:statsd], @logger)
             # Run all Workers
             workers = []
             worker_names.each do |worker_name|
@@ -33,7 +32,21 @@ module Monitoring
               workers << worker
             end
             metrics = sum_worker_results(workers)
-            metrics.each { |metric| statsd_client.send(metric) }
+
+            # Prepare all adapters
+            adapters = []
+            adapter_names.each do |adapter_name|
+              adapter_class = Module.const_get("Monitoring::#{adapter_name}")
+              adapter = adapter_class.new(host_group[:output], @logger)
+              adapters << adapter
+            end
+
+            # Send all metrics via adapters
+            metrics.each do |metric|
+              adapters.each do |adapter|
+                adapter.send(metric)
+              end
+            end
             @logger.debug("Host \"#{host}\" completed work")
           }
         end
